@@ -1,7 +1,7 @@
 name: Build personal keymaps
 
 on:
-  workflow-dispatch:
+  workflow_dispatch:
     inputs:
       qmk_base:
         required: true
