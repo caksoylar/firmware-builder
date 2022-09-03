@@ -79,15 +79,15 @@ jobs:
           if [ -n "${{ inputs.shield }}" ]; then
             for shield in ${{ inputs.shield }}; do
               west build -s app -b "$board" -d "build/$shield-$board" -- "-DSHIELD=$shield" $config_arg
-              cp "build/$shield-$board/zmk.uf2" "$shield-$board-zmk.uf2" \
-              || cp "build/$shield-$board/zmk.bin" "$shield-$board-zmk.bin" \
-              || cp "build/$shield-$board/zmk.hex" "$shield-$board-zmk.hex"
+              cp "build/$shield-$board/zephyr/zmk.uf2" "$shield-$board-zmk.uf2" \
+              || cp "build/$shield-$board/zephyr/zmk.bin" "$shield-$board-zmk.bin" \
+              || cp "build/$shield-$board/zephyr/zmk.hex" "$shield-$board-zmk.hex"
             done
           else
             west build -s app -b "$board" -d "build/$board" -- $config_arg
-            cp "build/$board/zmk.uf2" "$board-zmk.uf2" \
-            || cp "build/$board/zmk.bin" "$board-zmk.bin" \
-            || cp "build/$board/zmk.hex" "$board-zmk.hex"
+            cp "build/$board/zephyr/zmk.uf2" "$board-zmk.uf2" \
+            || cp "build/$board/zephyr/zmk.bin" "$board-zmk.bin" \
+            || cp "build/$board/zephyr/zmk.hex" "$board-zmk.hex"
           fi
         done
 
