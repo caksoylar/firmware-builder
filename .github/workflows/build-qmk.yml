@@ -1,4 +1,4 @@
-name: Build personal keymaps
+name: Build QMK keymaps
 
 on:
   workflow_dispatch:
