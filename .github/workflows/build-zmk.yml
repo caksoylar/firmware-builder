@@ -64,10 +64,14 @@ jobs:
 
     - name: Build firmware
       run: |
+        set -x
+        ls -la
         west init -l app
         west update
         west zephyr-export
 
+        ls -la
+        ls -la app/
         # assume config root is where west.yml is
         if [ -n "${{ inputs.zmk_config }}" ]; then
             config_arg="-DZMK_CONFIG=$(find ${GITHUB_WORKSPACE}/zmk-config -name west.yml -execdir realpath . ';' -quit)"
