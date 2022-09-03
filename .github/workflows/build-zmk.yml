@@ -38,7 +38,6 @@ jobs:
         persist-credentials: false
         submodules: recursive
         ref: ${{ inputs.zmk_branch }}
-        path: zmk
 
     - name: Checkout user config
       if: ${{ inputs.zmk_config }}
@@ -58,8 +57,7 @@ jobs:
           tools/
           zephyr/
           bootloader/
-          zmk/
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/west.yml') }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('app/west.yml') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
@@ -67,8 +65,6 @@ jobs:
 
     - name: Build firmware
       run: |
-        cd "${GITHUB_WORKSPACE}/zmk"
-
         west init -l app
         west update
         west zephyr-export
@@ -83,13 +79,13 @@ jobs:
         for board in ${{ inputs.board }}; do
           if [ -n "${{ inputs.shield }}" ]; then
             for shield in ${{ inputs.shield }}; do
-              west build -s zmk/app -b "build/$shield-$board" -- "$config_arg"
+              west build -s app -b "build/$shield-$board" -- "$config_arg"
               cp "build/$shield-$board/zmk.uf2" "$shield-$board-zmk.uf2" \
               || cp "build/$shield-$board/zmk.bin" "$shield-$board-zmk.bin" \
               || cp "build/$shield-$board/zmk.hex" "$shield-$board-zmk.hex"
             done
           else
-            west build -s zmk/app -b "build/$board" -- "$config_arg"
+            west build -s app -b "build/$board" -- "$config_arg"
             cp "build/$board/zmk.uf2" "$board-zmk.uf2" \
             || cp "build/$board/zmk.bin" "$board-zmk.bin" \
             || cp "build/$board/zmk.hex" "$board-zmk.hex"
