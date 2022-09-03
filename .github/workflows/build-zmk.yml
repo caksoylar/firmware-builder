@@ -104,3 +104,4 @@ jobs:
           *.hex
           *.bin
           *.uf2
+        retention-days: 7
