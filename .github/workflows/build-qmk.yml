@@ -43,12 +43,14 @@ jobs:
         persist-credentials: false
         submodules: recursive
         ref: ${{ inputs.qmk_branch }}
+
     - name: Checkout userspace
-      if:  ${{ inputs.qmk_userspace }}
+      if: ${{ inputs.qmk_userspace }}
       uses: actions/checkout@v2
       with:
         path: users/${{ github.actor }}
         persist-credentials: false
+
     - name: Build firmware
       run: |
         for kb in ${{ inputs.keyboard }}; do
@@ -56,6 +58,7 @@ jobs:
             qmk compile -kb $kb -km $km ${{ inputs.extra_args }}
           done
         done
+
     - name: Upload firmware
       uses: actions/upload-artifact@v2
       with:

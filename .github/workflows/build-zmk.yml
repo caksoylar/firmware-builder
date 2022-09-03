@@ -1,0 +1,106 @@
+name: Build ZMK keymaps
+
+on:
+  workflow_dispatch:
+    inputs:
+      zmk_base:
+        required: true
+        type: string
+        description: Base ZMK repository to use
+        default: zmkfirmware/zmk
+      zmk_branch:
+        required: true
+        type: string
+        description: Branch to use for ZMK base
+        default: main
+      zmk_config:
+        required: false
+        type: string
+        description: ZMK user config repo to use, optional
+      board:
+        required: true
+        type: string
+        description: Space-separated list of boards to build for, e.g. `nice_nano_v2`
+      shield:
+        type: string
+        description: Space-separated list of shields to build for, e.g. `cradio_left cradio_right pancake` -- leave empty for onboard controller keyboards
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+    steps:
+    - name: Checkout ZMK
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ inputs.zmk_base }}
+        persist-credentials: false
+        submodules: recursive
+        ref: ${{ inputs.zmk_branch }}
+        path: zmk
+
+    - name: Checkout user config
+      if: ${{ inputs.zmk_config }}
+      uses: actions/checkout@v2
+      with:
+        path: zmk-config
+        persist-credentials: false
+
+    - name: Cache west modules
+      uses: actions/cache@v3.0.2
+      continue-on-error: true
+      env:
+        cache-name: cache-zephyr-${{ steps.variables.outputs.zephyr-version }}-modules
+      with:
+        path: |
+          modules/
+          tools/
+          zephyr/
+          bootloader/
+          zmk/
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/west.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Build firmware
+      run: |
+        cd "${GITHUB_WORKSPACE}/zmk"
+
+        west init -l app
+        west update
+        west zephyr-export
+
+        # assume config root is where west.yml is
+        if [ -n "${{ inputs.zmk_config }}" ]; do
+            config_arg="-DZMK_CONFIG=$(find ${GITHUB_WORKSPACE}/zmk-config -name west.yml -execdir realpath . ';' -quit)"
+        else
+            config_arg=""
+        fi
+
+        for board in ${{ inputs.board }}; do
+          if [ -n "${{ inputs.shield }}" ]; then
+            for shield in ${{ inputs.shield }}; do
+              west build -s zmk/app -b "build/$shield-$board" -- "$config_arg"
+              cp "build/$shield-$board/zmk.uf2" "$shield-$board-zmk.uf2" \
+              || cp "build/$shield-$board/zmk.bin" "$shield-$board-zmk.bin" \
+              || cp "build/$shield-$board/zmk.hex" "$shield-$board-zmk.hex"
+            done
+          else
+            west build -s zmk/app -b "build/$board" -- "$config_arg"
+            cp "build/$board/zmk.uf2" "$board-zmk.uf2" \
+            || cp "build/$board/zmk.bin" "$board-zmk.bin" \
+            || cp "build/$board/zmk.hex" "$board-zmk.hex"
+          fi
+        done
+
+    - name: Upload firmware
+      uses: actions/upload-artifact@v2
+      with:
+        name: zmk_firmware
+        path: |
+          *.hex
+          *.bin
+          *.uf2
