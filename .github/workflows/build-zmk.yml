@@ -42,6 +42,7 @@ jobs:
       if: ${{ inputs.zmk_config }}
       uses: actions/checkout@v2
       with:
+        repository: ${{ inputs.zmk_config }}
         path: zmk-config
         persist-credentials: false
 
