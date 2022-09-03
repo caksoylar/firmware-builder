@@ -42,7 +42,7 @@ jobs:
         repository: ${{ inputs.qmk_base }}
         persist-credentials: false
         submodules: recursive
-        revision: ${{ inputs.qmk_branch }}
+        ref: ${{ inputs.qmk_branch }}
     - name: Checkout userspace
       if:  ${{ inputs.qmk_userspace }}
       uses: actions/checkout@v2
